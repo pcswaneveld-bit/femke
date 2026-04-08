@@ -1,21 +1,18 @@
 import { NextRequest } from "next/server";
-import { getSessie } from "../../../../lib/mobileSessie";
+import { list } from "@vercel/blob";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   const { sessionId } = await params;
-  const sessie = getSessie(sessionId);
-
-  if (!sessie) {
-    return Response.json({ error: "Sessie niet gevonden" }, { status: 404 });
-  }
-
-  // ?since=N — return only images at index >= N
   const since = parseInt(req.nextUrl.searchParams.get("since") ?? "0", 10);
-  const nieuweImages = sessie.images.slice(since);
-  const total = sessie.images.length;
 
-  return Response.json({ images: nieuweImages, total });
+  const { blobs } = await list({ prefix: `mobiel/${sessionId}/` });
+  blobs.sort((a, b) => new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime());
+
+  const allUrls = blobs.map((b) => b.url);
+  const nieuweUrls = allUrls.slice(since);
+
+  return Response.json({ images: nieuweUrls, total: allUrls.length });
 }

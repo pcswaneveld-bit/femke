@@ -198,7 +198,7 @@ export default function MobielScanBeheer() {
           <>
             <div>
               <p className="text-sm font-bold text-indigo-900 mb-1">Scan met je telefoon</p>
-              <p className="text-xs text-slate-400">Zorg dat je telefoon op hetzelfde wifi-netwerk zit</p>
+              <p className="text-xs text-slate-400">Scan de QR-code met je telefoon</p>
             </div>
             <div className="p-2 bg-white rounded-xl border border-purple-50 shadow-inner">
               <QRCode value={sessieUrl} size={160} />

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { addImage } from "../../../../lib/mobileSessie";
+import { put } from "@vercel/blob";
 
 export async function POST(
   req: NextRequest,
@@ -13,10 +13,15 @@ export async function POST(
     return Response.json({ error: "Geen afbeelding" }, { status: 400 });
   }
 
-  const ok = addImage(sessionId, image);
-  if (!ok) {
-    return Response.json({ error: "Sessie niet gevonden of verlopen" }, { status: 404 });
-  }
+  const [header, data] = image.split(",");
+  const mimeMatch = header.match(/data:([^;]+)/);
+  const mimeType = mimeMatch?.[1] ?? "image/jpeg";
+  const buffer = Buffer.from(data, "base64");
+
+  await put(`mobiel/${sessionId}/${Date.now()}`, buffer, {
+    access: "public",
+    contentType: mimeType,
+  });
 
   return Response.json({ ok: true });
 }
