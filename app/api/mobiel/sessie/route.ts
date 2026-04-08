@@ -17,8 +17,16 @@ function getLocalIP(): string {
 export async function POST(req: NextRequest) {
   const sessie = maakSessie();
   const host = req.headers.get("host") ?? "localhost:3000";
-  const port = host.includes(":") ? host.split(":")[1] : "3000";
-  const ip = getLocalIP();
-  const url = `http://${ip}:${port}/mobiel.html?sessionId=${sessie.id}`;
+  const isLocal = host.startsWith("localhost") || /^\d+\.\d+\.\d+\.\d+/.test(host.split(":")[0]);
+
+  let url: string;
+  if (isLocal) {
+    const port = host.includes(":") ? host.split(":")[1] : "3000";
+    const ip = getLocalIP();
+    url = `http://${ip}:${port}/mobiel.html?sessionId=${sessie.id}`;
+  } else {
+    url = `https://${host}/mobiel.html?sessionId=${sessie.id}`;
+  }
+
   return Response.json({ sessionId: sessie.id, url });
 }
