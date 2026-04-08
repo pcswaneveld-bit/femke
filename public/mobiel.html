@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Studiehulp — Foto scannen</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      text-align: center;
+    }
+    h1 { font-size: 22px; font-weight: 700; }
+    p.sub { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+    .btn {
+      width: 100%;
+      padding: 20px;
+      border-radius: 16px;
+      border: none;
+      background: linear-gradient(to right, #7c3aed, #ec4899);
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0.001;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+    .btn-outline {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      border: 2px solid #475569;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-outline input[type=file] {
+      position: absolute;
+      inset: 0;
+      opacity: 0.001;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+    .teller {
+      font-size: 48px;
+      font-weight: 800;
+      color: #a78bfa;
+    }
+    .status {
+      font-size: 14px;
+      color: #94a3b8;
+      min-height: 20px;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      border: 4px solid #a78bfa;
+      border-top-color: #7c3aed;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    .spinner.actief { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #a78bfa;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+    .row { display: flex; align-items: center; gap: 8px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div style="font-size:56px">📷</div>
+    <h1>Pagina scannen</h1>
+    <p class="sub">Maak een foto of kies er een uit je galerij. Hij wordt meteen verstuurd — je kunt er zo veel sturen als je wilt.</p>
+    <div style="background:#1e1b4b;border:1px solid #3730a3;border-radius:12px;padding:12px 14px;text-align:left;width:100%">
+      <p style="font-size:13px;color:#a5b4fc;line-height:1.5;">
+        ⚠️ <strong style="color:#c7d2fe">Let op:</strong> scan alleen pagina's van <strong style="color:#c7d2fe">één hoofdstuk per keer</strong>. Op de computer kun je daarna het vak, hoofdstuk en paginanummer instellen.
+      </p>
+    </div>
+
+    <!-- Teller -->
+    <div class="teller" id="teller">0</div>
+    <p class="sub" id="teller-label">foto's verstuurd</p>
+
+    <!-- Spinner tijdens upload -->
+    <div class="spinner" id="spinner"></div>
+    <div class="status" id="status"></div>
+
+    <!-- Knoppen: input zit IN de knop, helemaal transparant erover heen -->
+    <label class="btn">
+      📸 Foto maken
+      <input type="file" accept="image/*" capture="environment" onchange="verstuurBestand(this)" />
+    </label>
+
+    <label class="btn-outline">
+      🖼️ Kies uit galerij
+      <input type="file" accept="image/*" onchange="verstuurBestand(this)" />
+    </label>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get("sessionId");
+    let aantalVerstuurd = 0;
+    let bezigMetUploaden = false;
+
+    function setStatus(tekst) {
+      document.getElementById("status").textContent = tekst;
+    }
+
+    function setSpinner(aan) {
+      document.getElementById("spinner").classList.toggle("actief", aan);
+    }
+
+    async function verstuurBestand(input) {
+      const file = input.files[0];
+      if (!file) return;
+      if (bezigMetUploaden) { setStatus("Even wachten, vorige foto is nog bezig…"); return; }
+
+      bezigMetUploaden = true;
+      setSpinner(true);
+      setStatus("Foto versturen…");
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          const dataUrl = e.target.result;
+          try {
+            const res = await fetch("/api/mobiel/upload/" + sessionId, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: dataUrl }),
+            });
+            if (res.ok) {
+              aantalVerstuurd++;
+              document.getElementById("teller").textContent = aantalVerstuurd;
+              setStatus("✓ Verstuurd! Maak gerust de volgende foto.");
+            } else {
+              const data = await res.json();
+              setStatus("⚠️ " + (data.error || "Er ging iets mis"));
+            }
+          } catch(err) {
+            setStatus("⚠️ Geen verbinding met de computer");
+          } finally {
+            bezigMetUploaden = false;
+            setSpinner(false);
+            // Reset input so same file can be chosen again
+            input.value = "";
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch(err) {
+        setStatus("⚠️ Kon foto niet lezen");
+        bezigMetUploaden = false;
+        setSpinner(false);
+      }
+    }
+  </script>
+</body>
+</html>

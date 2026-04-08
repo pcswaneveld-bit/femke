@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* Class-based dark mode voor Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #faf8ff;
+  --foreground: #1e1b4b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+}
+
+/* ── Dark mode globale overrides ──────────────────────────────────────────── */
+
+.dark body {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Paginaachtergronden */
+.dark .bg-slate-200 { background-color: #0f172a !important; }
+
+/* Kaarten */
+.dark .bg-white {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* Input achtergronden */
+.dark .bg-purple-50 { background-color: #1e293b !important; }
+.dark .bg-slate-50  { background-color: #1e293b !important; }
+
+/* Borders */
+.dark .border-purple-100 { border-color: #334155 !important; }
+.dark .border-purple-200 { border-color: #475569 !important; }
+.dark .border-slate-200  { border-color: #334155 !important; }
+.dark .border-slate-100  { border-color: #1e293b !important; }
+
+/* Tekst: koppen */
+.dark .text-indigo-900 { color: #e2e8f0 !important; }
+.dark .text-indigo-800 { color: #cbd5e1 !important; }
+
+/* Tekst: body */
+.dark .text-slate-800 { color: #cbd5e1 !important; }
+.dark .text-slate-700 { color: #94a3b8 !important; }
+.dark .text-slate-600 { color: #94a3b8 !important; }
+.dark .text-slate-500 { color: #64748b !important; }
+.dark .text-slate-400 { color: #475569 !important; }
+
+/* Tekst: purple varianten */
+.dark .text-purple-900 { color: #e2e8f0 !important; }
+.dark .text-purple-800 { color: #c4b5fd !important; }
+.dark .text-purple-700 { color: #a78bfa !important; }
+
+/* Hover states */
+.dark .hover\:bg-purple-50:hover  { background-color: #1e293b !important; }
+.dark .hover\:bg-slate-50:hover   { background-color: #1e293b !important; }
+
+/* Specifieke componenten */
+.dark .shadow-sm  { box-shadow: 0 1px 2px rgba(0,0,0,0.4) !important; }
+.dark .shadow-md  { box-shadow: 0 4px 6px rgba(0,0,0,0.4) !important; }
+
+/* Invulvelden */
+.dark input, .dark textarea, .dark select {
+  background-color: #1e293b !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Emerald/rose/amber badges blijven zoals ze zijn — geen override nodig */
+
+/* Gradient tekst helper */
+.gradient-text {
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #c4b5fd;
+  border-radius: 99px;
+}
